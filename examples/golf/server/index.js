@@ -1,9 +1,9 @@
-const express = require('express');
+const express = require("express");
 const app = express();
 // eslint-disable-next-line new-cap
-const server = require('http').Server(app);
-const io = require('socket.io')(server);
-const swip = require('../../../src/server/index.js');
+const server = require("http").Server(app);
+const io = require("socket.io")(server);
+const swip = require("../../../src/server/index.js");
 
 app.use(express.static(`${__dirname}/../client`));
 
@@ -32,42 +32,74 @@ swip(io, {
 
         if (client) {
           if (Math.abs(client.data.rotationX) > ANGLE_INACCURACY) {
-            downhillAccelerationX = (client.data.rotationX - ANGLE_INACCURACY) * DOWNHILL_ACCELERATION_SCALE;
+            downhillAccelerationX =
+              (client.data.rotationX - ANGLE_INACCURACY) *
+              DOWNHILL_ACCELERATION_SCALE;
           }
 
           if (Math.abs(client.data.rotationY) > ANGLE_INACCURACY) {
-            downhillAccelerationY = (client.data.rotationY - ANGLE_INACCURACY) * DOWNHILL_ACCELERATION_SCALE;
+            downhillAccelerationY =
+              (client.data.rotationY - ANGLE_INACCURACY) *
+              DOWNHILL_ACCELERATION_SCALE;
           }
 
           // update speed and position if collision happens
-          if (((ball.speedX < 0) &&
-            ((nextPosX - boundaryOffset) < client.transform.x) &&
-            !isWallOpenAtPosition(client.transform.y, client.openings.left, nextPosY))) {
+          if (
+            ball.speedX < 0 &&
+            nextPosX - boundaryOffset < client.transform.x &&
+            !isWallOpenAtPosition(
+              client.transform.y,
+              client.openings.left,
+              nextPosY
+            )
+          ) {
             nextPosX = client.transform.x + boundaryOffset;
             nextSpeedX = ball.speedX * -1;
-          } else if (((ball.speedX > 0) &&
-            ((nextPosX + boundaryOffset) > (client.transform.x + client.size.width)) &&
-            !isWallOpenAtPosition(client.transform.y, client.openings.right, nextPosY))) {
-            nextPosX = client.transform.x + (client.size.width - boundaryOffset);
+          } else if (
+            ball.speedX > 0 &&
+            nextPosX + boundaryOffset >
+              client.transform.x + client.size.width &&
+            !isWallOpenAtPosition(
+              client.transform.y,
+              client.openings.right,
+              nextPosY
+            )
+          ) {
+            nextPosX =
+              client.transform.x + (client.size.width - boundaryOffset);
             nextSpeedX = ball.speedX * -1;
           }
 
-          if (((ball.speedY < 0) &&
-            ((nextPosY - boundaryOffset) < client.transform.y &&
-            !isWallOpenAtPosition(client.transform.x, client.openings.top, nextPosX)))) {
+          if (
+            ball.speedY < 0 &&
+            nextPosY - boundaryOffset < client.transform.y &&
+            !isWallOpenAtPosition(
+              client.transform.x,
+              client.openings.top,
+              nextPosX
+            )
+          ) {
             nextPosY = client.transform.y + boundaryOffset;
             nextSpeedY = ball.speedY * -1;
-          } else if (((ball.speedY > 0) &&
-            ((nextPosY + boundaryOffset) > (client.transform.y + client.size.height)) &&
-            !isWallOpenAtPosition(client.transform.x, client.openings.bottom, nextPosX))
+          } else if (
+            ball.speedY > 0 &&
+            nextPosY + boundaryOffset >
+              client.transform.y + client.size.height &&
+            !isWallOpenAtPosition(
+              client.transform.x,
+              client.openings.bottom,
+              nextPosX
+            )
           ) {
-            nextPosY = client.transform.y + (client.size.height - boundaryOffset);
+            nextPosY =
+              client.transform.y + (client.size.height - boundaryOffset);
             nextSpeedY = ball.speedY * -1;
           }
-        } else { // reset ball to first client of cluster
+        } else {
+          // reset ball to first client of cluster
           const firstClient = clients[0];
-          nextPosX = firstClient.transform.x + (firstClient.size.width / 2);
-          nextPosY = firstClient.transform.y + (firstClient.size.height / 2);
+          nextPosX = firstClient.transform.x + firstClient.size.width / 2;
+          nextPosY = firstClient.transform.y + firstClient.size.height / 2;
           nextSpeedX = 0;
           nextSpeedY = 0;
         }
@@ -99,7 +131,6 @@ swip(io, {
   client: {
     init: () => ({ rotationX: 0, rotationY: 0 }),
     events: {
-
       hitBall: ({ cluster, client }, { speedX, speedY }) => ({
         cluster: {
           data: {
@@ -134,22 +165,29 @@ swip(io, {
   },
 });
 
-function isParticleInClient (ball, client) {
+function isParticleInClient(ball, client) {
   const leftSide = client.transform.x;
-  const rightSide = (client.transform.x + client.size.width);
+  const rightSide = client.transform.x + client.size.width;
   const topSide = client.transform.y;
-  const bottomSide = (client.transform.y + client.size.height);
+  const bottomSide = client.transform.y + client.size.height;
 
-  return ball.x < rightSide && ball.x > leftSide && ball.y > topSide && ball.y < bottomSide;
+  return (
+    ball.x < rightSide &&
+    ball.x > leftSide &&
+    ball.y > topSide &&
+    ball.y < bottomSide
+  );
 }
 
-function isWallOpenAtPosition (transform, openings, particlePos) {
-  return openings.some((opening) => (
-    particlePos >= (opening.start + transform) && particlePos <= (opening.end + transform)
-  ));
+function isWallOpenAtPosition(transform, openings, particlePos) {
+  return openings.some(
+    (opening) =>
+      particlePos >= opening.start + transform &&
+      particlePos <= opening.end + transform
+  );
 }
 
-function isInsideHole (hole, ball) {
+function isInsideHole(hole, ball) {
   const distanceX = hole.x - ball.x;
   const distanceY = hole.y - ball.y;
   const distance = Math.sqrt(Math.pow(distanceX, 2) + Math.pow(distanceY, 2));
@@ -158,7 +196,9 @@ function isInsideHole (hole, ball) {
   return distance <= hole.radius && speed < SPEED_THRESHOLD;
 }
 
-server.listen(3000);
+const PORT = process.env.PORT || 3000;
+
+server.listen(PORT);
 
 // eslint-disable-next-line no-console
-console.log('started server: http://localhost:3000');
+console.log(`started server: http://localhost:${PORT}`);
