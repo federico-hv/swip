@@ -2,8 +2,10 @@
   "name": "swip",
   "version": "0.1.0",
   "description": "",
+  "private": true,
   "main": "src/server/index.js",
   "scripts": {
+    "start": "npm run golf",
     "test": "mocha",
     "dev": "webpack --watch",
     "build": "webpack",
@@ -47,6 +49,10 @@
     "should": "^10.0.0",
     "should-sinon": "0.0.5",
     "sinon": "^1.17.5",
-    "style-loader": "^0.13.1"
-  }
+    "style-loader": "^0.13.1",
+    "webpack": "2.7.0"
+  },
+  "workspaces": [
+    "examples/*"
+  ]
 }
